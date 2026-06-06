@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Alarm — SSC CGL Schedule</title>
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Study+Alarm%22%2C%22short_name%22%3A%22StudyAlarm%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a0f%22%2C%22theme_color%22%3A%22%234f46e5%22%7D">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --accent-glow: rgba(99,102,241,0.25);
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --dim: #475569;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    color: var(--accent2);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  header h1 {
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #f1f5f9 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Clock */
+  .clock-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .clock-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .clock-date {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .next-alarm-pill {
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 12px;
+    padding: 10px 16px;
+    text-align: right;
+    min-width: 160px;
+  }
+
+  .next-alarm-pill .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .next-alarm-pill .value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent2);
+  }
+
+  .next-alarm-pill .countdown {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+  }
+
+  /* Permission bar */
+  #perm-bar {
+    background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06));
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  #perm-bar .msg {
+    font-size: 13px;
+    color: #fcd34d;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #perm-bar .msg svg { flex-shrink: 0; }
+
+  #grant-btn {
+    background: rgba(245,158,11,0.2);
+    border: 1px solid rgba(245,158,11,0.4);
+    color: #fcd34d;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  #grant-btn:hover { background: rgba(245,158,11,0.3); }
+
+  #perm-granted {
+    display: none;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: #6ee7b7;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Native alarm section */
+  .native-section {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .native-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .native-section p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .native-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .native-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .native-btn:hover {
+    background: rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.4);
+    color: var(--accent2);
+  }
+
+  .native-btn svg { flex-shrink: 0; }
+
+  /* Schedule */
+  .schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .schedule-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .toggle-all-btn {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .toggle-all-btn:hover {
+    color: var(--text);
+    border-color: var(--border2);
+    background: var(--surface2);
+  }
+
+  .schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slot {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.25s;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .slot:hover { border-color: var(--border2); background: var(--surface2); }
+
+  .slot.active {
+    border-color: rgba(99,102,241,0.5);
+    background: rgba(99,102,241,0.08);
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.2);
+  }
+
+  .slot.ringing {
+    border-color: var(--green);
+    background: rgba(16,185,129,0.1);
+    animation: ring-pulse 0.8s ease infinite;
+  }
+
+  .slot.meal {
+    border-left: 3px solid var(--amber);
+  }
+
+  .slot.break-slot {
+    border-left: 3px solid var(--green);
+  }
+
+  @keyframes ring-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  }
+
+  .slot-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 110px;
+  }
+
+  .slot.active .slot-time { color: var(--accent2); }
+
+  .slot-info { }
+
+  .slot-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .slot-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dim);
+    flex-shrink: 0;
+  }
+
+  .slot.active .slot-dot { background: var(--accent); }
+  .slot.ringing .slot-dot { background: var(--green); }
+
+  .slot-sub {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 2px;
+    padding-left: 12px;
+  }
+
+  .slot-toggle {
+    width: 36px;
+    height: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+
+  .slot-toggle::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background: var(--dim);
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: all 0.2s;
+  }
+
+  .slot.enabled .slot-toggle {
+    background: rgba(99,102,241,0.3);
+    border-color: var(--accent);
+  }
+
+  .slot.enabled .slot-toggle::after {
+    background: var(--accent2);
+    left: 18px;
+  }
+
+  /* Progress bar */
+  .day-progress {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 1.5rem;
+  }
+
+  .dp-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .dp-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .dp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 100px;
+    transition: width 1s;
+  }
+
+  /* Notification toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 360px;
+    width: calc(100% - 2rem);
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  .toast-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(16,185,129,0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .toast-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .toast-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .toast-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px;
+    line-height: 1;
+  }
+
+  /* Alarm sound toggle */
+  .sound-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .sound-label {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sound-toggle {
+    width: 42px;
+    height: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sound-toggle.on {
+    background: rgba(99,102,241,0.3);
+    border-color: var(--accent);
+  }
+
+  .sound-toggle::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background: var(--dim);
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: all 0.2s;
+  }
+
+  .sound-toggle.on::after {
+    background: var(--accent2);
+    left: 20px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 500px) {
+    .slot { grid-template-columns: 1fr auto; }
+    .slot-time { grid-column: 1 / -1; font-size: 11px; }
+    .clock-card { flex-direction: column; align-items: flex-start; }
+    .next-alarm-pill { text-align: left; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      SSC CGL 2025 Prep
+    </div>
+    <h1>Daily Study Schedule</h1>
+    <p>Browser notifications + native alarm setup for every session</p>
+  </header>
+
+  <!-- Clock -->
+  <div class="clock-card">
+    <div>
+      <div class="clock-display" id="clock">--:--:--</div>
+      <div class="clock-date" id="clock-date">Loading...</div>
+    </div>
+    <div class="next-alarm-pill">
+      <div class="label">Next alarm</div>
+      <div class="value" id="next-name">—</div>
+      <div class="countdown" id="next-countdown">—</div>
+    </div>
+  </div>
+
+  <!-- Permission bar -->
+  <div id="perm-bar">
+    <div class="msg">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Enable browser notifications to get alarms for each session
+    </div>
+    <button id="grant-btn" onclick="requestPermission()">Enable Notifications</button>
+  </div>
+
+  <div id="perm-granted">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+    Browser notifications enabled — you'll be reminded at each session start
+  </div>
+
+  <!-- Day progress -->
+  <div class="day-progress">
+    <div class="dp-label">
+      <span>Day Progress</span>
+      <span id="dp-pct">0%</span>
+    </div>
+    <div class="dp-bar">
+      <div class="dp-fill" id="dp-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Sound toggle -->
+  <div class="sound-row">
+    <div class="sound-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5"/><path d="M15.54,8.46a5,5,0,0,1,0,7.07"/><path d="M19.07,4.93a10,10,0,0,1,0,14.14"/></svg>
+      Sound alerts
+    </div>
+    <div class="sound-toggle on" id="sound-toggle" onclick="toggleSound()"></div>
+  </div>
+
+  <!-- Native alarm setup -->
+  <div class="native-section">
+    <h3>Set Native Device Alarms</h3>
+    <p>Tap the platform below to open your device's clock/alarm app and set all alarms manually — or download the times list.</p>
+    <div class="native-btns">
+      <button class="native-btn" onclick="openAndroid()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        Android Clock
+      </button>
+      <button class="native-btn" onclick="openIOS()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v1H8V6a4 4 0 0 1 4-4z"/><rect x="4" y="7" width="16" height="15" rx="2"/></svg>
+        iOS Clock
+      </button>
+      <button class="native-btn" onclick="copyTimes()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Alarm Times
+      </button>
+      <button class="native-btn" onclick="downloadICS()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download .ics Calendar
+      </button>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="schedule-header">
+    <h2>Today's Schedule</h2>
+    <button class="toggle-all-btn" onclick="toggleAll()">Toggle All</button>
+  </div>
+
+  <div class="schedule-list" id="schedule-list"></div>
+
+  <footer>Hosted on Render · Works offline after first load · Tap any slot to toggle its alarm</footer>
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <div class="toast-icon">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  </div>
+  <div>
+    <div class="toast-title" id="toast-title">Time to Study!</div>
+    <div class="toast-body" id="toast-body">Your next session is starting now.</div>
+  </div>
+  <button class="toast-close" onclick="hideToast()">×</button>
+</div>
+
+<script>
+const SCHEDULE = [
+  { id: 0, time: "06:00", end: "06:30", title: "Wake up & freshen up",     emoji: "🌅", sub: "Start fresh — don't hit snooze",      type: "routine" },
+  { id: 1, time: "06:30", end: "08:30", title: "SSC Quant",                emoji: "📐", sub: "Algebra, DI, Arithmetic — 2 hrs",     type: "ssc" },
+  { id: 2, time: "08:30", end: "09:30", title: "Breakfast",                emoji: "🍽️", sub: "Fixed meal time",                     type: "meal" },
+  { id: 3, time: "09:30", end: "11:30", title: "SSC Reasoning",            emoji: "🧩", sub: "Puzzles, Series, Analogy — 2 hrs",    type: "ssc" },
+  { id: 4, time: "11:30", end: "12:00", title: "Android Studio",           emoji: "📱", sub: "Daily 30-min dev session",            type: "dev" },
+  { id: 5, time: "12:00", end: "13:30", title: "SSC English",              emoji: "📖", sub: "Vocab, RC, Grammar — 1.5 hrs",        type: "ssc" },
+  { id: 6, time: "13:30", end: "14:30", title: "Lunch",                    emoji: "🍽️", sub: "Fixed meal time",                     type: "meal" },
+  { id: 7, time: "14:30", end: "16:30", title: "UPSC Coaching Recordings", emoji: "🎓", sub: "Watch & make notes — 2 hrs",          type: "upsc" },
+  { id: 8, time: "16:30", end: "17:00", title: "Break / Tea",              emoji: "☕", sub: "Rest, stretch, hydrate",              type: "break" },
+  { id: 9, time: "17:00", end: "18:30", title: "SSC General Awareness",    emoji: "🌍", sub: "Polity, History, Current — 1.5 hrs",  type: "ssc" },
+  { id:10, time: "18:30", end: "20:00", title: "SSC PYQ / Mock Practice",  emoji: "📝", sub: "Previous years + mock tests — 1.5 hrs", type: "ssc" },
+  { id:11, time: "20:00", end: "21:00", title: "UPSC Revision",            emoji: "🗺️", sub: "Notes, CA, mapping — 1 hr",           type: "upsc" },
+  { id:12, time: "21:00", end: "22:00", title: "Dinner",                   emoji: "🍽️", sub: "Fixed meal time",                     type: "meal" },
+  { id:13, time: "22:00", end: "23:00", title: "Mock Analysis / Revision", emoji: "🔍", sub: "Weak topics, error log — 1 hr",       type: "ssc" },
+  { id:14, time: "23:00", end: "06:00", title: "Sleep",                    emoji: "😴", sub: "7 hours — recovery is study too",     type: "routine" },
+];
+
+const TYPE_COLORS = {
+  ssc: "#6366f1", upsc: "#8b5cf6", dev: "#10b981",
+  meal: "#f59e0b", break: "#14b8a6", routine: "#64748b"
+};
+
+let enabled = JSON.parse(localStorage.getItem('enabled') || 'null') || SCHEDULE.map(s => s.id);
+let soundOn = localStorage.getItem('sound') !== 'false';
+let lastFired = {};
+
+function timeToMins(t) {
+  const [h,m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function nowMins() {
+  const n = new Date();
+  return n.getHours() * 60 + n.getMinutes();
+}
+
+function parseTime(t) {
+  const [h,m] = t.split(':').map(Number);
+  return { h, m };
+}
+
+function renderSchedule() {
+  const list = document.getElementById('schedule-list');
+  list.innerHTML = '';
+  const now = nowMins();
+
+  SCHEDULE.forEach(s => {
+    const start = timeToMins(s.time);
+    const end = s.end === "06:00" ? 24*60 : timeToMins(s.end);
+    const isActive = (s.end === "06:00")
+      ? (now >= start || now < 6*60)
+      : (now >= start && now < end);
+    const isEnabled = enabled.includes(s.id);
+    const color = TYPE_COLORS[s.type] || '#6366f1';
+
+    const div = document.createElement('div');
+    div.className = `slot ${isActive ? 'active' : ''} ${isEnabled ? 'enabled' : ''} ${s.type === 'meal' ? 'meal' : ''} ${s.type === 'break' ? 'break-slot' : ''}`;
+    div.dataset.id = s.id;
+    div.innerHTML = `
+      <div class="slot-time">${s.time} – ${s.end}</div>
+      <div class="slot-info">
+        <div class="slot-title">
+          <span class="slot-dot" style="${isEnabled ? `background:${color}` : ''}"></span>
+          ${s.title}
+        </div>
+        <div class="slot-sub">${s.sub}</div>
+      </div>
+      <div class="slot-toggle"></div>
+    `;
+    div.addEventListener('click', () => toggleSlot(s.id));
+    list.appendChild(div);
+  });
+}
+
+function toggleSlot(id) {
+  if (enabled.includes(id)) {
+    enabled = enabled.filter(x => x !== id);
+  } else {
+    enabled.push(id);
+  }
+  localStorage.setItem('enabled', JSON.stringify(enabled));
+  renderSchedule();
+}
+
+function toggleAll() {
+  if (enabled.length === SCHEDULE.length) {
+    enabled = [];
+  } else {
+    enabled = SCHEDULE.map(s => s.id);
+  }
+  localStorage.setItem('enabled', JSON.stringify(enabled));
+  renderSchedule();
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  localStorage.setItem('sound', soundOn);
+  const t = document.getElementById('sound-toggle');
+  t.classList.toggle('on', soundOn);
+}
+
+// Clock
+function updateClock() {
+  const n = new Date();
+  const h = String(n.getHours()).padStart(2,'0');
+  const m = String(n.getMinutes()).padStart(2,'0');
+  const s = String(n.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  document.getElementById('clock-date').textContent =
+    n.toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Day progress (6am to 11pm = 1020 mins)
+  const mins = nowMins();
+  const start = 6*60, total = 17*60;
+  const pct = Math.max(0, Math.min(100, ((mins - start) / total * 100)));
+  document.getElementById('dp-fill').style.width = pct.toFixed(1) + '%';
+  document.getElementById('dp-pct').textContent = pct.toFixed(0) + '%';
+
+  // Next alarm
+  updateNextAlarm(mins);
+
+  // Check fire
+  checkAlarms(n);
+}
+
+function updateNextAlarm(now) {
+  const upcoming = SCHEDULE
+    .filter(s => enabled.includes(s.id))
+    .map(s => {
+      let diff = timeToMins(s.time) - now;
+      if (diff <= 0) diff += 24*60;
+      return { ...s, diff };
+    })
+    .sort((a,b) => a.diff - b.diff);
+
+  if (!upcoming.length) return;
+  const next = upcoming[0];
+  const h = Math.floor(next.diff / 60);
+  const m = next.diff % 60;
+  document.getElementById('next-name').textContent = next.title.length > 18 ? next.title.slice(0,17)+'…' : next.title;
+  document.getElementById('next-countdown').textContent = `in ${h > 0 ? h+'h ' : ''}${m}m`;
+}
+
+function checkAlarms(now) {
+  const key = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if (now.getSeconds() !== 0 && now.getSeconds() > 2) return;
+
+  SCHEDULE.forEach(s => {
+    if (s.time === key && enabled.includes(s.id) && lastFired[s.id] !== key) {
+      lastFired[s.id] = key;
+      fireAlarm(s);
+    }
+  });
+}
+
+function fireAlarm(slot) {
+  showToast(slot.title, `Time: ${slot.time} – ${slot.end}\n${slot.sub}`);
+  if (soundOn) playBeep();
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification('⏰ ' + slot.title, {
+        body: `${slot.time} – ${slot.end}  ·  ${slot.sub}`,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⏰</text></svg>',
+        tag: 'study-alarm-' + slot.id,
+        requireInteraction: true
+      });
+    } catch(e) {}
+  }
+  renderSchedule();
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const freqs = [880, 1046, 1318];
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = f;
+      osc.type = 'sine';
+      const t = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+      gain.gain.linearRampToValueAtTime(0, t + 0.25);
+      osc.start(t);
+      osc.stop(t + 0.3);
+    });
+  } catch(e) {}
+}
+
+function showToast(title, body) {
+  document.getElementById('toast-title').textContent = '⏰ ' + title;
+  document.getElementById('toast-body').textContent = body;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 8000);
+}
+
+function hideToast() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+async function requestPermission() {
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('perm-bar').style.display = 'none';
+    const g = document.getElementById('perm-granted');
+    g.style.display = 'flex';
+    showToast('Notifications enabled!', 'You will be alerted at each session start.');
+  }
+}
+
+function checkInitialPermission() {
+  if (Notification.permission === 'granted') {
+    document.getElementById('perm-bar').style.display = 'none';
+    document.getElementById('perm-granted').style.display = 'flex';
+  } else if (Notification.permission === 'denied') {
+    document.getElementById('perm-bar').querySelector('.msg').textContent =
+      'Notifications blocked. Please allow them in browser settings.';
+    document.getElementById('grant-btn').style.display = 'none';
+  }
+}
+
+// Native alarm helpers
+function openAndroid() {
+  const times = SCHEDULE.map(s => s.time).join(', ');
+  try {
+    window.location.href = 'intent://com.android.deskclock/#Intent;package=com.google.android.deskclock;scheme=alarm;end';
+    setTimeout(() => {
+      try { window.location.href = 'clock://alarm'; } catch(e) {}
+    }, 500);
+  } catch(e) {}
+  showToast('Opening Android Clock…', 'Set alarms for: ' + times);
+}
+
+function openIOS() {
+  window.location.href = 'clock-alarm://';
+  setTimeout(() => showToast('Add these alarms', 'Tap Add in Clock app: 6:00 AM, 6:30, 9:30, 11:30, 12:00, 1:30 PM, 2:30, 4:30, 5:00, 6:30, 8:00, 9:00, 10:00, 11:00 PM'), 400);
+}
+
+function copyTimes() {
+  const lines = SCHEDULE.map(s => `${s.time}  ${s.title}`).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    showToast('Copied!', 'Paste alarm times into your clock app.');
+  }).catch(() => {
+    prompt('Copy these alarm times:', lines);
+  });
+}
+
+function downloadICS() {
+  const days = 30;
+  const today = new Date();
+  let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//SSC Study Alarm//EN\nCALSCALE:GREGORIAN\n';
+  for (let d = 0; d < days; d++) {
+    const dt = new Date(today);
+    dt.setDate(today.getDate() + d);
+    const ymd = dt.toISOString().slice(0,10).replace(/-/g,'');
+    SCHEDULE.forEach(s => {
+      if (s.type === 'routine' && s.id === 14) return;
+      const [sh, sm] = s.time.split(':').map(Number);
+      const [eh, em] = s.end.split(':').map(Number);
+      const uid = `ssc-${d}-${s.id}@studyalarm`;
+      ics += `BEGIN:VEVENT\nUID:${uid}\nSUMMARY:⏰ ${s.title}\nDESCRIPTION:${s.sub}\n`;
+      ics += `DTSTART:${ymd}T${String(sh).padStart(2,'0')}${String(sm).padStart(2,'0')}00\n`;
+      ics += `DTEND:${ymd}T${String(eh).padStart(2,'0')}${String(em).padStart(2,'0')}00\n`;
+      ics += `BEGIN:VALARM\nTRIGGER:-PT0M\nACTION:DISPLAY\nDESCRIPTION:Time for ${s.title}\nEND:VALARM\nEND:VEVENT\n`;
+    });
+  }
+  ics += 'END:VCALENDAR';
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ssc-study-schedule.ics';
+  a.click();
+  showToast('Calendar downloaded!', 'Open the .ics file to import all alarms into Google Calendar, iOS Calendar, or Outlook.');
+}
+
+// Sound toggle init
+document.getElementById('sound-toggle').classList.toggle('on', soundOn);
+
+// Init
+checkInitialPermission();
+renderSchedule();
+updateClock();
+setInterval(updateClock, 1000);
+
+// Keep page alive on mobile (wake lock)
+if ('wakeLock' in navigator) {
+  const requestWakeLock = async () => {
+    try { await navigator.wakeLock.request('screen'); } catch(e) {}
+  };
+  requestWakeLock();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') requestWakeLock();
+  });
+}
+</script>
+</body>
+</html>
